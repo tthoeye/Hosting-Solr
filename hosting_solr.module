@@ -1,0 +1,199 @@
+<?php
+/**
+ * @file Hosting Solr module
+ *
+ * Enables Solr servers in Aegir.
+ *
+ */
+ 
+
+ 
+/**
+ * Implements hook_menu
+ *
+ * Enables a menu item for the modules' settings page
+ *
+ */  
+function hosting_solr_menu() {
+  $items = array();
+  $items['admin/settings/hosting_solr'] = array(
+    'title' => t('Solr settings'),
+    'description' => t('Configure the deployment options of CollectiveAccess instances'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hosting_solr_settings_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form
+ *
+ * @return arra
+ *   A Form Array representing the Hosting Solr settings form
+ */
+function hosting_solr_settings_form() {
+  $form = array();
+
+  $form['hosting_solr'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Solr options'),
+  );
+  $form['hosting_solr']['default_port'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Solr default port'),
+    '#default_value' => variable_get('hosting_solr_default_port', '8080'),
+    '#size' => 50,
+    '#maxlength' => 128,
+    '#description' => t("The default port of Solr instances"),
+    '#required' => FALSE,
+  );
+
+  $form['#submit'] = array('hosting_solr_settings_form_submit_handler');
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_form_validate
+ *
+ * Validates the settings form
+ */
+function hosting_solr_settings_form_validate($form, &$form_state) {
+  $base = $form_state['values']['default_port'];
+  // @TODO check the port
+  return TRUE;
+
+}
+
+/**
+ * Saves the settings for Solr Hosting
+ *
+ * Implements hook_submit_handler
+ */
+function hosting_solr_settings_form_submit_handler($form, &$form_state) {
+  variable_set('default_port', $form_state['values']['default_port']);
+}
+
+
+
+
+ /**
+  * Implementation of hook_hosting_service()
+  *
+  * This stuff adds a new service type and a new server type in Aegir.
+  * We will use this functionality to create Solr 'servers'
+  * which can later be linked to Site instances.
+  *
+  * @see hosting_solr.service.inc 
+  */
+ function hosting_solr_hosting_service() {
+   return array(
+     'solr' => 'search',
+   );
+ }
+
+ /**
+  * Implements hook_service_type
+  *
+  * Defines a service type for Solr Servers
+  */
+ function hosting_solr_hosting_service_type() {
+   return array(
+     'search' => array(
+       'title' => t('Search'),
+     ),
+   );
+ }
+ 
+
+
+
+/**
+ * Implement hook_form_alter
+ *
+ * When adding a site, 
+ * allow choice betweeen any Solr server instances.
+ * The values of the selected servers are their NIDs so 
+ * when evaluating the site node, a server node will need
+ * to be loaded through node_load(nid)
+ *
+ * A value of 0 for this field indicates that no CA server
+ * will be used.
+ *
+ * <b>Note</b> the server selected here is only relevant if
+ * an install profile is chosen that actually uses this information.
+ * 
+ * @TODO We are not updating the form with AJAX
+ * For future reference, there is an example available under 
+ * ~/hostmaster/profiles/hostmaster/modules/site/something.js
+ */
+function hosting_solr_form_alter(&$form, $form_state, $form_id) {
+
+  // retrieving all Servers...
+  $qs = db_query('SELECT nid FROM {node} WHERE type="%s"', 'server');
+
+  $ca_servers = array();
+  $ca_servers[0] = "None";
+  // $ca_servers['new'] = "Create a new Solr Server";
+  
+  while($row = $qs->fetch_row()) {
+    $server = node_load($row[0]);
+    if ($server->services['search'])
+      $ca_servers[$server->nid] = $server->services['search']->server->title;
+  }
+  
+  if ($form_id == 'site_node_form') {
+    $form['hosting_solr_server'] = array(
+      '#type' => 'select',
+      '#title' => t('Use Solr Search Engine'),
+      '#description' => t('Select a Solr Server instance to use with this Site.<br/><b>Note:</b> This will only have effect if an install profile is selected that actually uses this information'),
+      '#default_value' => 'None',
+      '#options' => $ca_servers,
+      '#required' => FALSE,
+      '#weight' => 5,
+    );
+    return $form;
+  }
+}
+
+
+/**
+ * Permissions
+ *
+function hosting_solr_perm() {
+  return array(
+    'create ca_install task',
+  );
+}
+
+/**
+ * Implement hook_hosting_tasks
+ *
+function hosting_solr_hosting_tasks() {
+  $options = array();
+
+  $options['site']['ca_install'] = array(
+    'title' => t('Install CollectiveAccess'),
+    'description' => t('Install CollectiveAccess for this site'),
+    'weight' => 5,
+    'dialog' => FALSE,
+  );
+  
+  return $options;
+}
+
+function hosting_task_ca_install_form() {
+  $from = array();
+  return $form;
+}
+
+function hosting_task_ca_install_form_validate() {
+  return TRUE;
+}
+
+function hosting_task_ca_install_form_submit() {
+  dsm('CA Install submitted');
+}
+*/

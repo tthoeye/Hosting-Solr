@@ -1,0 +1,92 @@
+<?php
+/**
+ * @file
+ *   Install, update and uninstall for the database server module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function hosting_solr_schema() {
+  $schema['hosting_solr_server'] = array(
+    'fields' => array(
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'solr_url' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'solr_port' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 8080
+      ),
+      'solr_path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'service.php',
+      ),
+      'solr_enabled' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('vid'),
+  );
+  
+  $schema['hosting_solr_sites'] = array(
+    'fields' => array(
+      'vid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'hosting_solr_server' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'vid' => array('vid'),
+      'hosting_solr_server' => array('hosting_solr_server'),
+    ),
+  );
+  
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function hosting_solr_install() {
+  // Create tables.
+  drupal_install_schema('hosting_solr');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hosting_solr_uninstall() {
+  // Create tables.
+  drupal_uninstall_schema('hosting_solr');
+}
