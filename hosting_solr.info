@@ -1,5 +1,5 @@
 name = Hosting Solr Servers
-description = Hosting submodule that allows management of Apache Solr server instances directly from Aegir 
+description = Hosting submodule that allows management of Apache Solr server instances directly from Aegir FOR THE WIN
 package = Hosting
 dependencies[] = hosting
 core = 6.x
